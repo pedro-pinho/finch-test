@@ -1,0 +1,5 @@
+class,f1_score,precision,recall,support
+ bossa_nova,0.62, 0.93,0.46,199.0
+,0.75, funk,0.93,0.83
+     gospel,0.89, 0.84,0.95,188.0
+  sertanejo,0.72, 0.59,0.9,220.0

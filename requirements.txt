@@ -1,0 +1,5 @@
+numexpr==2.4.6
+pandas
+scikit-learn
+distribute
+promise
