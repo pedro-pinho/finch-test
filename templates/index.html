@@ -1,27 +1,21 @@
 {% block head %}
-  <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
-  <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> -->
-  <!-- <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script> -->
-  <!-- <script type=text/javascript>
-    $(function() {
-      $( "button" ).click( function( event ) {
-        q = $("#lyrics").val();
-        event.preventDefault();
-      } );
-  
-    });
-  </script> -->
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="css/bootstrap.min.css" rel="stylesheet">
+  <link href="css/dataTables.bootstrap.css" rel="stylesheet">
+  <title>Identificador de generos musicais</title>
 {% endblock %}
 {% block body %}
   <h2>Identificação de genero musical</h2>
   <blockquote>
-    Gosta de uma música mas não consegue identificar seu genero musical?
-    Essa página é para você!
-    Cole a letra de uma música no campo abaixo e aperte o botão enviar. 
+    Gosta de uma <b>música</b> mas não consegue identificar seu <b>genero musical</b>?<br>
+    Essa página é para você!<br>
+    <b>Cole a letra de uma música</b> no campo abaixo e aperte o botão <b>enviar</b>. 
+    <form class="form-group" action="{{ url_for('predict') }}" method="post">
+      <textarea name="q" id="q" class="form-control" rows="5" value=""></textarea>
+      <br>
+      <button class="btn btn-primary">Enviar</button>
+    </form>
   </blockquote>
-  <form action="{{ url_for('predict') }}" method="post">
-    <textarea name="q" id="q" class="ui-widget ui-state-default ui-corner-all" value=""></textarea>
-    <br>
-    <button class="ui-button ui-widget ui-corner-all">Enviar</button>
-  </form>
 {% endblock %}

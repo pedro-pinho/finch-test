@@ -17,13 +17,14 @@ def classifaction_report_csv(report, label):
     report_data = []
     lines = report.split('\n')
     for line in lines[2:-3]:
+        m = re.search(' *(\w{4,10}) *(\d{1}\.\d{2}) *(\d{1}\.\d{2}) *(\d{1}\.\d{2}) *(\d{3})', line)
+        print m.group(1)
         row = {}
-        row_data = line.split('      ')
-        row['class'] = row_data[0]
-        row['precision'] = row_data[1]
-        row['recall'] = float(row_data[2])
-        row['f1_score'] = float(row_data[3])
-        row['support'] = float(row_data[4])
+        row['class'] = m.group(1)
+        row['precision'] = float(m.group(2))
+        row['recall'] = float(m.group(3))
+        row['f1_score'] = float(m.group(4))
+        row['support'] = float(m.group(5))
         report_data.append(row)
     dataframe = pd.DataFrame.from_dict(report_data)
     dataframe.to_csv(label+'.csv', index = False)
@@ -91,24 +92,26 @@ X_test_counts = count_vect.transform(docs_test)
 X_test_tfidf = tfidf_transformer.transform(X_test_counts)
 
 #1
-print "Metricas Naive bayes"
+# print "Metricas Naive bayes"
 predict_test_nb = clf_nb.predict(X_test_tfidf)
 accuracy_nb = np.mean(predict_test_nb == y_test)
 
 report_nb=metrics.classification_report(y_test, predict_test_nb, target_names=category) 
 classifaction_report_csv(report_nb,"nb")
 
-print(metrics.confusion_matrix(y_test, predict_test_nb))
+# print report_nb
+#print(metrics.confusion_matrix(y_test, predict_test_nb))
 
 #2
-print "Metricas Support Vector Machine(SVM)"
+# print "Metricas Support Vector Machine(SVM)"
 predict_test_svm = clf_svm.predict(X_test_tfidf)
 accuracy_svm = np.mean(predict_test_svm == y_test)
 
 report_svm = metrics.classification_report(y_test, predict_test_svm, target_names=category)
 classifaction_report_csv(report_svm,"svm")
+# print report_svm
 
-print(metrics.confusion_matrix(y_test, predict_test_svm))
+#print(metrics.confusion_matrix(y_test, predict_test_svm))
 
 #### Salvando modelo ####
 joblib.dump(clf_nb, 'model_nb.pkl') 
@@ -138,7 +141,7 @@ def predict():
     svm["predict"] = category[clf_svm.predict(X_new_tfidf)]
     svm["accuracy"] = accuracy_svm
 
-    return render_template('results.html', nb=nb, svm=svm, q=q)
+    return render_template('results.html', nb=nb, svm=svm)
 
 @app.route('/js/<path:path>')
 def js(path):
@@ -151,6 +154,10 @@ def csv(path):
 @app.route('/css/<path:path>')
 def css(path):
     return send_from_directory('csv-to-html-table/css', path)
+
+@app.route('/fonts/<path:path>')
+def fonts(path):
+    return send_from_directory('csv-to-html-table/fonts', path)
 
 if __name__ == '__main__':
     app.run(port=5000,host='0.0.0.0',debug=True)

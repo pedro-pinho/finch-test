@@ -4,30 +4,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <link href="css/dataTables.bootstrap.css" rel="stylesheet">
+    <title>Predições</title>
 {% endblock %}
-{% block title %}Resultados{% endblock %}
+{% block title %}<h2>Predições</h2>{% endblock %}
 {% block body %}
-  <!-- <table class=search-results>
-    <tr>
-        <th></th>
-        <th>Naive Bayer</th>
-        <th>Support Vector Machine</th>
-    </tr>
-    <tr>
-        <td><b>Predição</b></td>
-        <td>{{ nb["predict"] }}</</td>
-        <td>{{ svm["predict"] }}</td>
-    </tr>
-    <tr>
-        <td><b>Precisão</b></td>
-        <td>{{ nb["accuracy"] }}</</td>
-        <td>{{ svm["accuracy"] }}</</td>
-    </tr>
-  </table>
-   -->
-   <div id="container-nb"></div>
-   <div id="container-svm"></div>
-  <!-- <li><em>Ops! Não consegui classificar esta música :-(</em></li> -->
+    <blockquote>
+        <div style='opacity: {{nb["accuracy"]}}''>O algoritmo Naive Bayer acha que é <b>{{ nb["predict"] }}</b> com <b>{{nb["accuracy"]*100}}%</b> de certeza</div>
+        <div style='opacity: {{svm["accuracy"]}}''>O algoritmo Support Vector Machine acha que é <b>{{ svm["predict"] }}</b> com <b>{{svm["accuracy"]*100}}%</b> de certeza</div>
+    </blockquote>
+    <form action="{{ url_for('index') }}" method="get">
+      <button class="btn btn-primary">Nova predição</button>
+    </form>
+    <h2>Veja abaixo estatisticas dos algoritmos</h2>
+    <h3>Naive Bayer</h3>
+    <div id="container-nb"></div>
+    <h3>Support Vector Machine</h3>
+    <div id="container-svm"></div>
     <script type="text/javascript" src="/js/jquery.min.js"></script>
     <script type="text/javascript" src="/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="/js/jquery.csv.min.js"></script>
@@ -36,7 +28,6 @@
     <script type="text/javascript" src="/js/csv_to_html_table.js"></script>
 
     <script type="text/javascript">
-        console.log("msg");
         CsvToHtmlTable.init({
             csv_path: 'csv/nb.csv', 
             element: 'container-nb', 
