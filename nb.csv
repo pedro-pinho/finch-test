@@ -1,5 +1,0 @@
-class,f1_score,precision,recall,support
-bossa_nova,0.6,0.91,0.44,205.0
-funk,0.83,0.94,0.74,201.0
-gospel,0.87,0.85,0.89,189.0
-sertanejo,0.67,0.54,0.9,205.0

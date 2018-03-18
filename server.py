@@ -18,7 +18,6 @@ def classifaction_report_csv(report, label):
     lines = report.split('\n')
     for line in lines[2:-3]:
         m = re.search(' *(\w{4,10}) *(\d{1}\.\d{2}) *(\d{1}\.\d{2}) *(\d{1}\.\d{2}) *(\d{3})', line)
-        print m.group(1)
         row = {}
         row['class'] = m.group(1)
         row['precision'] = float(m.group(2))
