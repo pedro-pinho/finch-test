@@ -61,47 +61,105 @@ for c in category:
 # mydata = np.genfromtxt(filename, delimiter=",")
 dataset = load_files('data', encoding='ISO-8859-1', load_content=True, categories=category)
 
-# Hyper-parametro que controla tamanho do conjunto de testes
-test_size = 0.25
+# 80% treino
+test_size = 0.2
+docs_train, docs_to_split, y_train, y_to_split = train_test_split(
+    dataset.data, dataset.target, test_size = test_size, random_state=1)
 
-docs_train, docs_test, y_train, y_test = train_test_split(
-    dataset.data, dataset.target, test_size = test_size, random_state=None)
+#10% teste, 10% validacao
+validation_size = 0.5
+docs_test, docs_validation, y_test, y_validation = train_test_split(
+    docs_to_split, y_to_split, test_size = validation_size, random_state=1)
 
-#### Captura de Features ####
 # Tokenizer
 count_vect = CountVectorizer()
-X_train_counts = count_vect.fit_transform(docs_train)
-#X_train_counts.shape
 
 # Abordagem tf-idf
 tfidf_transformer = TfidfTransformer()
+
+#### Captura de Features Conjunto de Validacao ####
+X_validation_counts = count_vect.transform(docs_validation)
+X_validation_tfidf = tfidf_transformer.transform(X_validation_counts)
+
+#### Captura de Features Conjunto de Treino ####
+X_train_counts = count_vect.fit_transform(docs_train)
 X_train_tfidf = tfidf_transformer.fit_transform(X_train_counts)
+
+#### Captura de Features Conjunto de Teste ####
+X_test_counts = count_vect.transform(docs_test)
+X_test_tfidf = tfidf_transformer.transform(X_test_counts)
 
 #### Treinar Modelo ####
 
 # Alternativa 1: Naive bayes
-clf_nb = MultinomialNB().fit(X_train_tfidf, y_train)
+#Encontrar melhor valor de alpha
+alpha_nb = 0
+best_accuracy_nb = 0
+for x in np.arange(0.0, 1.0, 0.3):
+    clf_nb = MultinomialNB(alpha=x).fit(X_validation_tfidf, y_validation)
+    
+    predict_validation_nb = clf_nb.predict(X_validation_tfidf)
+    accuracy_nb = np.mean(predict_validation_nb == y_validation)
 
-# Alternativa 2: SVM
-svm = SGDClassifier(loss='hinge', penalty='l2', alpha=1e-3, random_state=42, max_iter=5, tol=None)
-clf_svm = svm.fit(X_train_tfidf, y_train)
+    #se foi a maior acuracia ate agora, salva como melhor alpha
+    if accuracy_nb > best_accuracy_nb:  
+        alpha_nb = x
+        best_accuracy_nb = accuracy_nb
+
+#Com o alpha encontrado
+clf_nb = MultinomialNB(alpha=alpha_nb).fit(X_train_tfidf, y_train)
 
 #### Avaliando algoritmo ####
-X_test_counts = count_vect.transform(docs_test)
-X_test_tfidf = tfidf_transformer.transform(X_test_counts)
-
-#1
-# print "Metricas Naive bayes"
 predict_test_nb = clf_nb.predict(X_test_tfidf)
 accuracy_nb = np.mean(predict_test_nb == y_test)
 
 report_nb=metrics.classification_report(y_test, predict_test_nb, target_names=category) 
 classifaction_report_csv(report_nb,"nb")
-
-# print report_nb
 #print(metrics.confusion_matrix(y_test, predict_test_nb))
 
-#2
+# Alternativa 2: SVM
+# #
+# Existem muitos parametros no svm do sklearn
+# loss=hinge,
+# penalty=l2
+# alpha=0.0001
+# l1_ratio=0.15
+# fit_intercept=True
+# max_iter=None
+# tol=None
+# shuffle=True
+# verbose=0
+# epsilon=0.1,
+# n_jobs=1,
+# random_state=None,
+# learning_rate=optimal,
+# eta0=0.0,
+# power_t=0.5,
+# class_weight=None,
+# warm_start=False,
+# average=False,
+# n_iter=None
+# # 
+#Encontrar melhor valor de alpha
+alpha_svm = 0
+best_accuracy_svm = 0
+for x in np.arange(0.0001, 1.0, 0.3):
+    svm = SGDClassifier(loss='hinge', penalty='l2', alpha=x, random_state=42, max_iter=5, tol=None)
+    clf_svm = svm.fit(X_validation_tfidf, y_validation)
+
+    #se foi a maior acuracia ate agora, salva como melhor alpha
+    predict_validation_svm = clf_svm.predict(X_validation_tfidf)
+    accuracy_svm = np.mean(predict_validation_svm == y_validation)
+    
+    if accuracy_svm > best_accuracy_svm:  
+        alpha_svm = x
+        best_accuracy_svm = accuracy_svm
+
+
+svm = SGDClassifier(loss='hinge', penalty='l2', alpha=alpha_svm, random_state=42, max_iter=5, tol=None)
+clf_svm = svm.fit(X_train_tfidf, y_train)
+
+#### Avaliando algoritmo ####
 # print "Metricas Support Vector Machine(SVM)"
 predict_test_svm = clf_svm.predict(X_test_tfidf)
 accuracy_svm = np.mean(predict_test_svm == y_test)
