@@ -7,6 +7,7 @@ from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import SGDClassifier
+from sklearn import svm
 import random
 import re
 import os
@@ -21,7 +22,7 @@ def classifaction_report_csv(report, label):
         row = {}
         if m is None:
             return
-        row['class'] = m.group(1)
+        row['class'] = m.group(1).replace("_", " ")
         row['precision'] = float(m.group(2))
         row['recall'] = float(m.group(3))
         row['f1_score'] = float(m.group(4))
@@ -149,8 +150,7 @@ print "Calibrando SGD..."
 best_accuracy_sgd = 0
 loss = ["hinge", "log", "modified_huber", "squared_hinge", "perceptron", "squared_loss", "huber", "epsilon_insensitive", "squared_epsilon_insensitive"]
 for l in loss:
-    sgd = SGDClassifier(loss=l, random_state=42,
-                        max_iter=5, tol=None)
+    sgd = SGDClassifier(loss=l)
     clf_sgd = sgd.fit(X_validation_tfidf, y_validation)
 
     # Se foi a maior acuracia ate agora, salva como melhor loss
@@ -165,8 +165,7 @@ for l in loss:
 alpha_sgd = 0
 best_accuracy_sgd = 0
 for x in np.arange(0.0001, 1.0, 0.3):
-    sgd = SGDClassifier(loss=loss_sgd, alpha=x,
-                        random_state=42, max_iter=5, tol=None)
+    sgd = SGDClassifier(alpha=x)
     clf_sgd = sgd.fit(X_validation_tfidf, y_validation)
 
     # Se foi a maior acuracia ate agora, salva como melhor alpha
@@ -182,8 +181,7 @@ for x in np.arange(0.0001, 1.0, 0.3):
 best_accuracy_sgd = 0
 penalty = ["none", "l2", "l1", "elasticnet"]
 for p in penalty:
-    sgd = SGDClassifier(loss=loss_sgd, penalty=p, alpha=alpha_sgd,
-                        random_state=42, max_iter=5, tol=None)
+    sgd = SGDClassifier(penalty=p)
     clf_sgd = sgd.fit(X_validation_tfidf, y_validation)
     # Se foi a maior acuracia ate agora, salva como melhor penalty
     predict_validation_sgd = clf_sgd.predict(X_validation_tfidf)
@@ -198,9 +196,7 @@ best_accuracy_sgd = 0
 learning_rate = ["constant","optimal","invscaling"]
 for lr in learning_rate:
     eta0_sgd = 1 #chutando um valor de eta0
-    sgd = SGDClassifier(loss=loss_sgd, penalty=penalty_sgd,
-                        alpha=alpha_sgd, random_state=42,
-                        max_iter=5, tol=None, learning_rate=lr, eta0=eta0_sgd)
+    sgd = SGDClassifier(learning_rate=lr, eta0=eta0_sgd)
     clf_sgd = sgd.fit(X_validation_tfidf, y_validation)
     # Se foi a maior acuracia ate agora, salva
     predict_validation_sgd = clf_sgd.predict(X_validation_tfidf)
@@ -213,9 +209,7 @@ if learning_rate_sgd is not "optimal":
     #Necessario aprender melhor valor de eta0
     best_accuracy_sgd = 0
     for x in np.arange(0.01, 1.0, 0.3):
-        sgd = SGDClassifier(loss=loss_sgd, penalty=penalty_sgd,
-                            alpha=alpha_sgd, random_state=42,
-                            max_iter=5, tol=None,learning_rate=learning_rate_sgd,
+        sgd = SGDClassifier(learning_rate=learning_rate_sgd,
                             eta0=x)
         clf_sgd = sgd.fit(X_validation_tfidf, y_validation)
 
@@ -230,10 +224,7 @@ if learning_rate_sgd is not "optimal":
 # Encontrando o melhor valor de tol (Criterio de parada)
 best_accuracy_sgd = 0
 for x in np.arange(0.001, 2.1, 0.01):
-    sgd = SGDClassifier(loss=loss_sgd, penalty=penalty_sgd,
-                        alpha=alpha_sgd, random_state=42,
-                        max_iter=50,learning_rate=learning_rate_sgd,
-                        eta0=eta0_sgd,tol=x)
+    sgd = SGDClassifier(tol=x)
     clf_sgd = sgd.fit(X_validation_tfidf, y_validation)
     #Se foi a maior acuracia ate agora, salva 
     predict_validation_sgd = clf_sgd.predict(X_validation_tfidf)
@@ -265,19 +256,84 @@ sgd = SGDClassifier(loss=loss_sgd,penalty=penalty_sgd,
 clf_sgd = sgd.fit(X_train_tfidf, y_train)
 
 #### Avaliando algoritmo ####
-# print "Metricas Stochastic Gradient Descent"
 predict_test_sgd = clf_sgd.predict(X_test_tfidf)
 accuracy_sgd = np.mean(predict_test_sgd == y_test)
 
 report_sgd = metrics.classification_report(y_test, predict_test_sgd, target_names=category)
 classifaction_report_csv(report_sgd,"sgd")
-# print report_sgd
-
 #print(metrics.confusion_matrix(y_test, predict_test_sgd))
+
+# Alternativa 3: SVM
+# LinearSVC e outra implementacao de Support Vector Classification 
+# para o caso de kernel linear.
+print "Calibrando SVM..."
+# Encontrando o melhor valor de penalty
+best_accuracy_svm = 0
+penalty = ["l2", "l1"]
+for p in penalty:
+    svm_lin = svm.LinearSVC(penalty=p, dual=False)
+    clf_svm = svm_lin.fit(X_validation_tfidf, y_validation)
+    # Se foi a maior acuracia ate agora, salva como melhor penalty
+    predict_validation_svm = clf_svm.predict(X_validation_tfidf)
+    accuracy_svm = np.mean(predict_validation_svm == y_validation)
+    
+    if accuracy_svm > best_accuracy_svm:  
+        penalty_svm = p
+        best_accuracy_svm = accuracy_svm
+
+best_accuracy_svm = 0
+loss = ["hinge", "squared_hinge"]
+for l in loss:
+    svm_lin = svm.LinearSVC(loss=l)
+    clf_svm = svm_lin.fit(X_validation_tfidf, y_validation)
+    # Se foi a maior acuracia ate agora, salva como melhor loss
+    predict_validation_svm = clf_svm.predict(X_validation_tfidf)
+    accuracy_svm = np.mean(predict_validation_svm == y_validation)
+    
+    if accuracy_svm > best_accuracy_svm:
+        loss_svm = l
+        best_accuracy_svm = accuracy_svm
+
+best_accuracy_svm = 0
+multi_class = ["ovr", "crammer_singer"]
+for mc in multi_class:
+    svm_lin = svm.LinearSVC(multi_class=mc)
+    clf_svm = svm_lin.fit(X_validation_tfidf, y_validation)
+    # Se foi a maior acuracia ate agora, salva como melhor multi class
+    predict_validation_svm = clf_svm.predict(X_validation_tfidf)
+    accuracy_svm = np.mean(predict_validation_svm == y_validation)
+    
+    if accuracy_svm > best_accuracy_svm:
+        mc_svm = mc
+        best_accuracy_svm = accuracy_svm
+
+best_accuracy_svm = 0
+dual = [True, False]
+for d in dual:
+    svm_lin = svm.LinearSVC(dual=d)
+    clf_svm = svm_lin.fit(X_validation_tfidf, y_validation)
+    # Se foi a maior acuracia ate agora, salva
+    predict_validation_svm = clf_svm.predict(X_validation_tfidf)
+    accuracy_svm = np.mean(predict_validation_svm == y_validation)
+    
+    if accuracy_svm > best_accuracy_svm:
+        dual_svm = d
+        best_accuracy_svm = accuracy_svm
+
+clf_svm = svm.LinearSVC(dual=dual_svm, loss=loss_svm,
+     multi_class=mc_svm, penalty=penalty_svm, verbose=0, max_iter=3000)
+clf_svm.fit(X_train_tfidf, y_train) 
+
+predict_test_svm = clf_svm.predict(X_test_tfidf)
+accuracy_svm = np.mean(predict_test_svm == y_test)
+
+report_svm = metrics.classification_report(y_test, predict_test_svm, target_names=category)
+classifaction_report_csv(report_svm,"svm")
 
 #### Salvando modelo ####
 joblib.dump(clf_nb, 'model_nb.pkl') 
 joblib.dump(clf_sgd, 'model_sgd.pkl') 
+joblib.dump(clf_svm, 'model_svm.pkl') 
 
 app = Flask(__name__)
 
@@ -293,17 +349,21 @@ def predict():
     q = [request.form['q']] or ['']
     nb = {};
     sgd = {};
+    svm = {};
 
     X_new_counts = count_vect.transform(q)
     X_new_tfidf = tfidf_transformer.transform(X_new_counts)
     #1
-    nb["predict"] = category[clf_nb.predict(X_new_tfidf)]
+    nb["predict"] = category[clf_nb.predict(X_new_tfidf)].replace("_", " ")
     nb["accuracy"] = accuracy_nb
     #2
-    sgd["predict"] = category[clf_sgd.predict(X_new_tfidf)]
+    sgd["predict"] = category[clf_sgd.predict(X_new_tfidf)].replace("_", " ")
     sgd["accuracy"] = accuracy_sgd
+    #3
+    svm["predict"] = category[clf_svm.predict(X_new_tfidf)].replace("_", " ")
+    svm["accuracy"] = accuracy_svm
 
-    return render_template('results.html', nb=nb, sgd=sgd)
+    return render_template('results.html', nb=nb, sgd=sgd, svm=svm)
 
 @app.route('/js/<path:path>')
 def js(path):

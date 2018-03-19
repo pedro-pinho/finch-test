@@ -11,6 +11,7 @@
     <blockquote>
         <div style='opacity: {{nb["accuracy"]}}''>O algoritmo Naive Bayer acha que é <b>{{ nb["predict"] }}</b> com <b>{{nb["accuracy"]*100}}%</b> de certeza</div>
         <div style='opacity: {{sgd["accuracy"]}}''>O algoritmo Stochastic Gradient Descent acha que é <b>{{ sgd["predict"] }}</b> com <b>{{sgd["accuracy"]*100}}%</b> de certeza</div>
+        <div style='opacity: {{svm["accuracy"]}}''>O algoritmo Linear Support Vector Classifier acha que é <b>{{ svm["predict"] }}</b> com <b>{{svm["accuracy"]*100}}%</b> de certeza</div>
     </blockquote>
     <form action="{{ url_for('index') }}" method="get">
       <button class="btn btn-primary">Nova predição</button>
@@ -20,6 +21,8 @@
     <div id="container-nb"></div>
     <h3>Stochastic Gradient Descent</h3>
     <div id="container-sgd"></div>
+    <h3>Linear Support Vector Classifier</h3>
+    <div id="container-svm"></div>
     <script type="text/javascript" src="/js/jquery.min.js"></script>
     <script type="text/javascript" src="/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="/js/jquery.csv.min.js"></script>
@@ -38,6 +41,13 @@
         CsvToHtmlTable.init({
             csv_path: 'csv/sgd.csv', 
             element: 'container-sgd', 
+            allow_download: true,
+            csv_options: {separator: ',', delimiter: '"'},
+            datatables_options: {"paging": false}
+        });
+        CsvToHtmlTable.init({
+            csv_path: 'csv/svm.csv', 
+            element: 'container-svm', 
             allow_download: true,
             csv_options: {separator: ',', delimiter: '"'},
             datatables_options: {"paging": false}
