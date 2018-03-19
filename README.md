@@ -1,4 +1,4 @@
-A simple classifier of music genders, Naive bayes and SVM used.
+A simple classifier of music genders, Naive bayes and SGD used.
 
 To run, install packages listed on requirements.txt, execute:
 ```
